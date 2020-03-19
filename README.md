@@ -71,7 +71,7 @@ For example: `some-directory/{{ utc_date }}/`.
 
 #### `connector.class`
 
-Connector class name, in this case: `io.aiven.kafka.connect.s3.AivenKafkaConnectS3SinkConnector`.
+Connector class name, in this case: `io.aiven.kafka.connect.s3.S3SinkConnector`.
 
 #### `key.converter`
 
@@ -110,7 +110,7 @@ curl -X POST \
                 "aws_s3_bucket": "aiven-example",
                 "aws_s3_prefix": "example-s3-sink/",
                 "aws_s3_region": "us-east-1",
-                "connector.class": "io.aiven.kafka.connect.s3.AivenKafkaConnectS3SinkConnector",
+                "connector.class": "io.aiven.kafka.connect.s3.S3SinkConnector",
                 "key.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
                 "output_compression": "gzip",
                 "output_fields": "value,key,timestamp",

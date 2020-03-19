@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 
 public class AivenKafkaConnectS3SinkTask extends SinkTask {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AivenKafkaConnectS3SinkConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(S3SinkConnector.class);
 
     private Map<String, String> taskConfig;
 
@@ -96,7 +96,7 @@ public class AivenKafkaConnectS3SinkTask extends SinkTask {
 
     @Override
     public String version() {
-        return new AivenKafkaConnectS3SinkConnector().version();
+        return new S3SinkConnector().version();
     }
 
     @Override
