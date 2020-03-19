@@ -37,6 +37,7 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.apache.kafka.connect.storage.Converter;
 
+import io.aiven.kafka.connect.s3.config.AivenKafkaConnectS3Constants;
 import io.aiven.kafka.connect.s3.templating.TemplatingEngine;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

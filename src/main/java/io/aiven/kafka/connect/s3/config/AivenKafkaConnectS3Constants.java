@@ -15,23 +15,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.aiven.kafka.connect.s3;
+package io.aiven.kafka.connect.s3.config;
 
+@Deprecated
 public class AivenKafkaConnectS3Constants {
+    @Deprecated
     public static final String AWS_ACCESS_KEY_ID = "aws_access_key_id";
+    @Deprecated
     public static final String AWS_S3_BUCKET = "aws_s3_bucket";
+    @Deprecated
     public static final String AWS_S3_ENDPOINT = "aws_s3_endpoint";
+    @Deprecated
     public static final String AWS_S3_PREFIX = "aws_s3_prefix";
+    @Deprecated
     public static final String AWS_S3_REGION = "aws_s3_region";
+    @Deprecated
     public static final String AWS_SECRET_ACCESS_KEY = "aws_secret_access_key";
 
+    @Deprecated
     public static final String OUTPUT_COMPRESSION = "output_compression";
+    @Deprecated
     public static final String OUTPUT_COMPRESSION_TYPE_GZIP = "gzip";
+    @Deprecated
     public static final String OUTPUT_COMPRESSION_TYPE_NONE = "none";
 
+    @Deprecated
     public static final String OUTPUT_FIELDS = "output_fields";
+
+    @Deprecated
     public static final String OUTPUT_FIELD_NAME_KEY = "key";
+
+    @Deprecated
     public static final String OUTPUT_FIELD_NAME_OFFSET = "offset";
+
+    @Deprecated
     public static final String OUTPUT_FIELD_NAME_TIMESTAMP = "timestamp";
+
+    @Deprecated
     public static final String OUTPUT_FIELD_NAME_VALUE = "value";
 }

@@ -28,6 +28,9 @@ import org.apache.kafka.connect.connector.Connector;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.errors.ConnectException;
 
+import io.aiven.kafka.connect.s3.config.AivenKafkaConnectS3Constants;
+import io.aiven.kafka.connect.s3.config.S3SyncConfig;
+
 public class AivenKafkaConnectS3SinkConnector extends Connector {
 
     private Map<String, String> configProperties;
@@ -89,6 +92,6 @@ public class AivenKafkaConnectS3SinkConnector extends Connector {
 
     @Override
     public ConfigDef config() {
-        return AivenKafkaConnectS3Config.newConfigDef();
+        return S3SyncConfig.configDef();
     }
 }
