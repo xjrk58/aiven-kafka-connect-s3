@@ -17,6 +17,8 @@
 
 package io.aiven.kafka.connect.s3.config;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +36,14 @@ import io.aiven.kafka.connect.common.config.CompressionType;
 import io.aiven.kafka.connect.common.config.OutputField;
 import io.aiven.kafka.connect.common.config.OutputFieldEncodingType;
 import io.aiven.kafka.connect.common.config.OutputFieldType;
+import io.aiven.kafka.connect.common.config.TimestampSource;
 import io.aiven.kafka.connect.common.config.validators.FileCompressionTypeValidator;
 import io.aiven.kafka.connect.common.config.validators.NonEmptyPassword;
 import io.aiven.kafka.connect.common.config.validators.OutputFieldsValidator;
+import io.aiven.kafka.connect.common.config.validators.TimeZoneValidator;
+import io.aiven.kafka.connect.common.config.validators.TimestampSourceValidator;
 import io.aiven.kafka.connect.common.config.validators.UrlValidator;
+import io.aiven.kafka.connect.common.templating.Template;
 
 import com.amazonaws.regions.Regions;
 import org.slf4j.Logger;
@@ -73,6 +79,9 @@ public class S3SyncConfig extends AivenCommonConfig {
     public static final String AWS_S3_PREFIX_CONFIG = "aws.s3.prefix";
     public static final String AWS_S3_REGION_CONFIG = "aws.s3.region";
 
+    public static final String TIMESTAMP_TIMEZONE = "timestamp.timezone";
+    public static final String TIMESTAMP_SOURCE = "timestamp.source";
+
     public S3SyncConfig(final Map<?, ?> originals) {
         super(configDef(), originals);
         validate();
@@ -85,6 +94,7 @@ public class S3SyncConfig extends AivenCommonConfig {
         addCompressionTypeConfig(configDef, null);
         //so far it is null, since old and new variables now supported
         addOutputFieldsFormatConfigGroup(configDef, null);
+        addTimestampConfig(configDef);
         addDeprecatedConfiguration(configDef);
         return configDef;
     }
@@ -142,6 +152,29 @@ public class S3SyncConfig extends AivenCommonConfig {
             new ConfigDef.NonEmptyString(),
             Importance.MEDIUM,
             "Prefix for stored objects, e.g. cluster-1/"
+        );
+
+    }
+
+    private static void addTimestampConfig(final ConfigDef configDef) {
+
+        configDef.define(
+            TIMESTAMP_TIMEZONE,
+            Type.STRING,
+            ZoneOffset.UTC.toString(),
+            new TimeZoneValidator(),
+            Importance.LOW,
+            "Specifies the timezone in which the dates and time for the timestamp variable will be treated. "
+                + "Use standard shot and long names. Default is UTC"
+        );
+
+        configDef.define(
+            TIMESTAMP_SOURCE,
+            Type.STRING,
+            TimestampSource.Type.WALLCLOCK.name(),
+            new TimestampSourceValidator(),
+            Importance.LOW,
+            "Specifies the the timestamp variable source. Default is wall-clock."
         );
 
     }
@@ -308,14 +341,6 @@ public class S3SyncConfig extends AivenCommonConfig {
                     AWS_S3_BUCKET_NAME_CONFIG,
                     AWS_S3_BUCKET)
             );
-        } else if (Objects.isNull(getString(AWS_S3_PREFIX_CONFIG))
-            && Objects.isNull(getString(AWS_S3_PREFIX))) {
-            throw new ConfigException(
-                String.format(
-                    "Neither %s nor %s properties have been set",
-                    AWS_S3_PREFIX_CONFIG,
-                    AWS_S3_PREFIX)
-            );
         }
     }
 
@@ -360,9 +385,13 @@ public class S3SyncConfig extends AivenCommonConfig {
     }
 
     public String getPrefix() {
-        return Objects.nonNull(getString(AWS_S3_PREFIX_CONFIG))
-            ? getString(AWS_S3_PREFIX_CONFIG)
-            : getString(AWS_S3_PREFIX);
+        if (Objects.nonNull(getString(AWS_S3_PREFIX_CONFIG))) {
+            return getString(AWS_S3_PREFIX_CONFIG);
+        } else if (Objects.nonNull(getString(AWS_S3_PREFIX))) {
+            return getString(AWS_S3_PREFIX);
+        } else {
+            return "";
+        }
     }
 
     @Override
@@ -407,7 +436,42 @@ public class S3SyncConfig extends AivenCommonConfig {
             : OutputFieldEncodingType.BASE64;
     }
 
+    public Template getPrefixTemplate() {
+        final var t = Template.of(getPrefix());
+        t.instance()
+            .bindVariable(
+                "utc_date",
+                () -> {
+                    LOGGER.info("utc_date variable is deprecated please read documentation for the new name");
+                    return "";
+                })
+            .bindVariable(
+                "local_date",
+                () -> {
+                    LOGGER.info("local_date variable is deprecated please read documentation for the new name");
+                    return "";
+                })
+            .render();
+        return t;
+    }
+
+    public final ZoneId getTimezone() {
+        return ZoneId.of(getString(TIMESTAMP_TIMEZONE));
+    }
+
+    public TimestampSource getTimestampSource() {
+        return TimestampSource.of(
+            getTimezone(),
+            TimestampSource.Type.of(getString(TIMESTAMP_SOURCE))
+        );
+    }
+
     protected static class AwsRegionValidator implements ConfigDef.Validator {
+
+        private static final String SUPPORTED_AWS_REGIONS =
+            Arrays.stream(Regions.values())
+                .map(Regions::getName)
+                .collect(Collectors.joining(", "));
 
         @Override
         public void ensureValid(final String name, final Object value) {
@@ -418,11 +482,7 @@ public class S3SyncConfig extends AivenCommonConfig {
                 } catch (final IllegalArgumentException e) {
                     throw new ConfigException(
                         name, valueStr,
-                        "supported values are: "
-                            + Arrays.stream(
-                                Regions.values()
-                            ).map(Regions::getName)
-                             .collect(Collectors.joining(", ")));
+                        "supported values are: " + SUPPORTED_AWS_REGIONS);
                 }
             }
         }

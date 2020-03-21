@@ -15,8 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.aiven.kafka.connect.s3;
+package io.aiven.kafka.connect.s3.config;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,6 @@ import io.aiven.kafka.connect.common.config.CompressionType;
 import io.aiven.kafka.connect.common.config.OutputField;
 import io.aiven.kafka.connect.common.config.OutputFieldEncodingType;
 import io.aiven.kafka.connect.common.config.OutputFieldType;
-import io.aiven.kafka.connect.s3.config.S3SyncConfig;
 
 import com.amazonaws.regions.Regions;
 import com.google.common.collect.Maps;
@@ -39,6 +39,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static io.aiven.kafka.connect.common.config.FormatterUtils.formatTimestamp;
 import static io.aiven.kafka.connect.s3.config.AivenKafkaConnectS3Constants.AWS_ACCESS_KEY_ID;
 import static io.aiven.kafka.connect.s3.config.AivenKafkaConnectS3Constants.AWS_S3_BUCKET;
 import static io.aiven.kafka.connect.s3.config.AivenKafkaConnectS3Constants.AWS_S3_ENDPOINT;
@@ -442,14 +443,6 @@ class S3SyncConfigTest {
         props.put(S3SyncConfig.AWS_S3_BUCKET_NAME_CONFIG, "blah-blah-blah");
         props.put(S3SyncConfig.AWS_S3_REGION_CONFIG, Regions.US_WEST_1.getName());
 
-        t = assertThrows(
-            ConfigException.class,
-            () -> new S3SyncConfig(props)
-        );
-        assertEquals(
-            "Neither aws.s3.prefix nor aws_s3_prefix properties have been set",
-            t.getMessage()
-        );
     }
 
     @Test
@@ -624,6 +617,42 @@ class S3SyncConfigTest {
             "Invalid value unsupported for configuration file.compression.type: "
                 + "supported values are: 'none', 'gzip'",
             t.getMessage());
+    }
+
+    @Test
+    void shouldBuildPrefixTemplate() {
+
+        final var prefix = "{{timestamp:unit=YYYY}}/{{timestamp:unit=MM}}/{{timestamp:unit=dd}}/";
+
+        final Map<String, String> props = new HashMap<>();
+        props.put(S3SyncConfig.AWS_ACCESS_KEY_ID_CONFIG, "blah-blah-blah");
+        props.put(S3SyncConfig.AWS_SECRET_ACCESS_KEY_CONFIG, "blah-blah-blah");
+        props.put(S3SyncConfig.AWS_S3_BUCKET_NAME_CONFIG, "blah-blah-blah");
+        props.put(S3SyncConfig.AWS_S3_REGION_CONFIG, Regions.US_WEST_1.getName());
+        props.put(S3SyncConfig.FORMAT_OUTPUT_FIELDS_CONFIG, "key,value,offset,timestamp");
+        props.put(S3SyncConfig.TIMESTAMP_TIMEZONE, "Europe/Berlin");
+        props.put(S3SyncConfig.TIMESTAMP_SOURCE, "wallclock");
+        props.put(S3SyncConfig.AWS_S3_PREFIX_CONFIG, prefix);
+
+        final var c = new S3SyncConfig(props);
+
+        final var expectedTimestamp = c.getTimestampSource().time();
+
+        final var renderedPrefix =
+            c.getPrefixTemplate()
+                .instance()
+                .bindVariable("timestamp", parameter -> formatTimestamp.apply(c.getTimestampSource(), parameter))
+                .render();
+
+        assertEquals(
+            String.format(
+                "%s/%s/%s/",
+                expectedTimestamp.format(DateTimeFormatter.ofPattern("YYYY")),
+                expectedTimestamp.format(DateTimeFormatter.ofPattern("MM")),
+                expectedTimestamp.format(DateTimeFormatter.ofPattern("dd"))
+            ),
+            renderedPrefix
+        );
     }
 
 
