@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 
-import io.aiven.kafka.connect.s3.AivenKafkaConnectS3MultipartUpload;
+import io.aiven.kafka.connect.s3.S3MultipartUpload;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AivenKafkaConnectS3MultipartUploadTest {
+public class S3MultipartUploadTest {
 
     @Test
     public void testAivenKafkaConnectS3MultipartUploadTest() throws IOException {
@@ -58,7 +58,7 @@ public class AivenKafkaConnectS3MultipartUploadTest {
         final AmazonS3 s3Client = builder.build();
         s3Client.createBucket("test-bucket");
 
-        final AivenKafkaConnectS3MultipartUpload mp = new AivenKafkaConnectS3MultipartUpload(
+        final S3MultipartUpload mp = new S3MultipartUpload(
             s3Client,
             "test-bucket",
             "test-object"

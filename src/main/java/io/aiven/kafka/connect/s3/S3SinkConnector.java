@@ -45,12 +45,12 @@ public class S3SinkConnector extends Connector {
 
     @Override
     public String version() {
-        return Version.getVersion("aiven-kafka-connect-s3-version.properties");
+        return Version.getVersion(S3SyncConfig.VERSION_FILE);
     }
 
     @Override
     public Class<? extends Task> taskClass() {
-        return AivenKafkaConnectS3SinkTask.class;
+        return S3SinkTask.class;
     }
 
     @Override

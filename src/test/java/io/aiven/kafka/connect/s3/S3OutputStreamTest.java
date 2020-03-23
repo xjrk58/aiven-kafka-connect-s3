@@ -18,7 +18,7 @@
 import java.io.IOException;
 import java.util.Random;
 
-import io.aiven.kafka.connect.s3.AivenKafkaConnectS3OutputStream;
+import io.aiven.kafka.connect.s3.S3OutputStream;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AivenKafkaConnectS3OutputStreamTest {
+public class S3OutputStreamTest {
 
     @Test
     public void testAivenKafkaConnectS3OutputStreamTest() throws IOException {
@@ -54,8 +54,8 @@ public class AivenKafkaConnectS3OutputStreamTest {
         final AmazonS3 s3Client = builder.build();
         s3Client.createBucket("test-bucket");
 
-        final AivenKafkaConnectS3OutputStream storageSmall =
-            new AivenKafkaConnectS3OutputStream(s3Client, "test-bucket", "test-key-small");
+        final S3OutputStream storageSmall =
+            new S3OutputStream(s3Client, "test-bucket", "test-key-small");
 
         final byte[] inputSmall = "small".getBytes();
         storageSmall.write(inputSmall);
@@ -65,8 +65,8 @@ public class AivenKafkaConnectS3OutputStreamTest {
         storageSmall.close();
         assertTrue(s3Client.doesObjectExist("test-bucket", "test-key-small"));
 
-        final AivenKafkaConnectS3OutputStream storageLarge =
-            new AivenKafkaConnectS3OutputStream(s3Client, "test-bucket", "test-key-large");
+        final S3OutputStream storageLarge =
+            new S3OutputStream(s3Client, "test-bucket", "test-key-large");
         final byte[] inputLarge = new byte[1024 * 1024 * 10];
         storageLarge.write(inputLarge);
         assertFalse(s3Client.doesObjectExist("test-bucket", "test-key-large"));

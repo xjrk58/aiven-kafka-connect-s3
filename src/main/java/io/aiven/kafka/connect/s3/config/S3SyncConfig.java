@@ -68,6 +68,8 @@ public class S3SyncConfig extends AivenCommonConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3SyncConfig.class);
 
+    public static final String VERSION_FILE = "aiven-kafka-connect-s3-version.properties";
+
     //FIXME since we support so far both old style and new style of property names
     //      Importance was set to medium,
     //      as soon we will migrate to new values it must be set to HIGH
